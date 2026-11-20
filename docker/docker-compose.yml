@@ -1,0 +1,15 @@
+# For a Linux host / Raspberry Pi. Run from this folder: docker compose up -d --build
+services:
+  printinbox:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: printinbox
+    restart: unless-stopped
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      - TZ=America/New_York
+      - INBOX_DIR=/inbox
+    volumes:
+      # Point this at the locally synced Google Drive PrintInbox folder (e.g. via rclone)
+      - ${PRINTINBOX_HOST_DIR:-/srv/printinbox}:/inbox

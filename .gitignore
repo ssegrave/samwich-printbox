@@ -1,0 +1,10 @@
+# secrets / per-machine settings
+.env
+*.env
+!.env.example
+# python
+__pycache__/
+*.pyc
+.venv/
+# runtime
+printinbox.log
