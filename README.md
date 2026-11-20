@@ -21,10 +21,14 @@ No printer Developer Mode needed; printing stays in Bambu Studio / Bambu Connect
 
 ## Quick start (Windows)
 
-    git clone https://github.com/<you>/samwich-printinbox.git
-    cd samwich-printinbox
+    mkdir $HOME\repos      # once; skip if it exists
+    cd $HOME\repos
+    git clone https://github.com/ssegrave/samwich-printinbox.git
     py --version            # 3.10+
 
-Then follow `windows/SETUP.md`. Update later with `git pull`.
+Then follow `windows/SETUP.md`. Update later with `git pull` inside
+`$HOME\repos\samwich-printinbox`.
+
+Keep the repo out of OneDrive / Google Drive folders (sync tools and git don't mix).
 
 Run the watcher on **one machine only**; other PCs just see the files through Google Drive.

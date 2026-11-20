@@ -1,6 +1,7 @@
 # PrintInbox on samdesk - Phase 1 (parse only)
 
-Code lives wherever you cloned this repo (e.g. `Documents\samwich-printinbox\`); the launcher is `windows\run-watcher.bat`. The drop folder is the Google Drive folder
+Code lives in `C:\Users\<you>\repos\samwich-printinbox\` (a local folder, not synced by
+OneDrive or Google Drive); the launcher is `windows\run-watcher.bat`. The drop folder is the Google Drive folder
 `G:\My Drive\PrintInbox\` (set in `run-watcher.bat`; edit that line if your path differs).
 On first run the watcher adds `processed\`, `failed\` and `printinbox.log` inside it.
 
