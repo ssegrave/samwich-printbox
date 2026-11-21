@@ -67,11 +67,18 @@ def _scalar(value):
 
 
 def read_application(z: zipfile.ZipFile, names: set) -> str | None:
-    """Slicer name+version from <metadata name="Application"> in 3D/3dmodel.model."""
+    """Slicer name+version from 3D/3dmodel.model.
+
+    OrcaSlicer writes Application="BambuStudio-<ver>" for compatibility and adds its own
+    <metadata name="OrcaSlicer">2.5.1</metadata>, so check for that first.
+    """
     if "3D/3dmodel.model" not in names:
         return None
     with z.open("3D/3dmodel.model") as f:
         head = f.read(65536).decode("utf-8", "replace")
+    m = re.search(r'<metadata name="OrcaSlicer">([^<]*)</metadata>', head)
+    if m:
+        return f"OrcaSlicer-{m.group(1).strip()}"
     m = re.search(r'<metadata name="Application">([^<]*)</metadata>', head)
     return m.group(1).strip() if m else None
 
@@ -133,14 +140,17 @@ def parse_3mf(path: Path) -> dict:
         if not plates:
             raise ValueError("slice_info.config has no <plate> entries - nothing was sliced.")
         if not any(p["has_gcode"] for p in plates):
-            raise ValueError("No Metadata/plate_N.gcode inside - file is not printable.")
+            raise ValueError(
+                "No Metadata/plate_N.gcode inside - this is an unsliced project file. "
+                "In the slicer use File > Export > 'Export plate sliced file' (.gcode.3mf)."
+            )
 
         return {
             "name": job_name(path),
             "source_file": path.name,
             "size_bytes": path.stat().st_size,
             "slicer": read_application(z, names),   # e.g. "BambuStudio-02.03.01.51" / "OrcaSlicer-2.3.1"
-            "slicer_version": header.get("X-BBL-Client-Version"),
+            "slicer_version": header.get("OrcaSlicer-Version") or header.get("X-BBL-Client-Version"),
             "printer_model": _scalar(settings.get("printer_model")),
             "printer_variant": _scalar(settings.get("printer_variant")),
             "printer_settings_id": _scalar(settings.get("printer_settings_id")),
