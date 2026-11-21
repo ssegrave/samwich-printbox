@@ -30,9 +30,9 @@ launches the right slicer locally, where Samuel confirms AMS mapping and prints.
 - Commit in small, descriptive commits; push to `origin main`.
 
 ## Status
-- Phase 1 (parse) built. Checkpoint 3 test a (Bambu Studio, P1S) passed:
-  `printer_model='Bambu Lab P1S'`, slicer `BambuStudio-02.09.01.70`.
-- Pending: tests b (Bambu Studio H3C - record exact printer_model), c (OrcaSlicer P1S),
-  d (multi-plate), unsliced -> failed/. Then Phase 2 (Notion + opener).
+- Phase 1 (parse) done; Checkpoint 3 passed (all four real exports + unsliced -> failed/).
+  `printer_model`: `Bambu Lab P1S`, `Bambu Lab H3C`. Slicer strings:
+  `BambuStudio-02.09.01.70`, `OrcaSlicer-2.5.1` (see PLAN.md for Orca detection quirk).
+- Next: Phase 2 (Notion + opener).
 - Notion Print Jobs DB: https://app.notion.com/p/41eda0e940bf81bc85ebcff87fda6ecf
   (needs internal integration "PrintInbox" connected; token goes in `.env`).
