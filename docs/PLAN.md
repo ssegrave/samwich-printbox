@@ -48,7 +48,7 @@
             to Program Files, override with BAMBU_STUDIO_EXE / ORCASLICER_EXE.
             `windows/run-opener.bat` runs it on every PC. Checkpoint passed: PRINT-3 opened
             in Bambu Studio 02.09 (new window, straight to sliced preview).
-            OrcaSlicer not installed on samdesk; Orca launch untested.
+            OrcaSlicer launch tested on a second PC: opened as expected.
 - [ ] **Phase 3 - background + install:** run hidden at login (Task Scheduler), one-command
       installer for new PCs.
 - [ ] **Phase 4 - Pi:** watcher on Pi with rclone-synced Drive folder; PCs run opener only.
