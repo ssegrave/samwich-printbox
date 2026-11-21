@@ -31,6 +31,7 @@ COLOR_OPTIONS = {
 
 # Properties PrintBox adds to Print Jobs if they're missing.
 EXTRA_PROPERTIES = {
+    "Plate": {"rich_text": {}},        # exported file name, e.g. hacha_axe_blade
     "Filaments": {"rich_text": {}},
     "Colors": {"multi_select": {"options": [{"name": n, "color": c} for n, c in COLOR_OPTIONS.items()]}},
     # Clickable green "PRINT-N" label for the Open URL (a Button can't open a per-row URL).
@@ -149,11 +150,9 @@ def _slicer(info: dict) -> str | None:
 
 
 def display_name(info: dict) -> str:
-    """'<project Title> · <file name>' (exports of one project share a Title), else the file name."""
-    title, name = (info.get("title") or "").strip(), info["name"]
-    if not title or title.lower() == name.lower():
-        return name
-    return f"{title} · {name}"
+    """The project Title (e.g. a MakerWorld model's title), else the file name.
+    Exports of one project share a Title; the Plate column tells them apart."""
+    return (info.get("title") or "").strip() or info["name"]
 
 
 def build_properties(info: dict, file_rel: str) -> dict:
@@ -161,6 +160,7 @@ def build_properties(info: dict, file_rel: str) -> dict:
     colors = sorted({c for c in (color_name(s["color"]) for s in slots) if c})
     props = {
         "Name": {"title": [{"text": {"content": display_name(info)[:2000]}}]},
+        "Plate": _text(info["name"]),
         "Status": {"status": {"name": "Inbox"}},
         "Printer": {"select": {"name": PRINTERS.get(info.get("printer_model") or "", "Other")}},
         "Est. Minutes": {"number": round(info["total_print_time_s"] / 60)},
