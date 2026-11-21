@@ -29,6 +29,16 @@
 - [ ] **Phase 2 - Notion + opener:** create Print Jobs row per file (name, printer, time,
       grams, materials, plates, slicer, preview, Open link); local page at
       `http://localhost:8765/open/PRINT-N` launches the right slicer with the synced file.
+      - [x] Step 1: integration connected, schema read (API `2025-09-03`, rows go under
+            the database's data source).
+      - [x] Step 2: `watcher/notion.py` creates the row after the file is filed, then sets
+            Open from the Job ID. Adds **Filaments** (text, per slot: `1: PLA Orange
+            (#F99963) 4.16 g`) and **Colors** (multi-select, nearest color name from the
+            slicer hex) if missing. Notion failures never fail the job; the `.json` gets
+            `notion.synced=false`. Checkpoint passed (PRINT-2).
+      - [ ] Step 3: plate preview image -> Preview (Notion file upload API).
+      - [ ] Step 4: retry unsynced jobs.
+      - [ ] Step 5: opener at `localhost:8765`.
 - [ ] **Phase 3 - background + install:** run hidden at login (Task Scheduler), one-command
       installer for new PCs.
 - [ ] **Phase 4 - Pi:** watcher on Pi with rclone-synced Drive folder; PCs run opener only.

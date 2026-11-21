@@ -33,6 +33,7 @@ launches the right slicer locally, where Samuel confirms AMS mapping and prints.
 - Phase 1 (parse) done; Checkpoint 3 passed (all four real exports + unsliced -> failed/).
   `printer_model`: `Bambu Lab P1S`, `Bambu Lab H3C`. Slicer strings:
   `BambuStudio-02.09.01.70`, `OrcaSlicer-2.5.1` (see PLAN.md for Orca detection quirk).
-- Next: Phase 2 (Notion + opener).
+- Phase 2 in progress: Notion rows (incl. Filaments/Colors) working, checkpoint passed.
+  Next: preview image upload, retry unsynced, then the opener (see PLAN.md).
 - Notion Print Jobs DB: https://app.notion.com/p/41eda0e940bf81bc85ebcff87fda6ecf
   (needs internal integration "PrintBox" connected; token goes in `.env`).
