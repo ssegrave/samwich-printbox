@@ -12,6 +12,8 @@ import logging
 import os
 import urllib.error
 import urllib.request
+import uuid
+from pathlib import Path
 
 API = "https://api.notion.com/v1/"
 NOTION_VERSION = "2025-09-03"
@@ -43,15 +45,16 @@ def configured() -> bool:
     return bool(token) and not token.startswith("ntn_xxx") and bool(os.environ.get("NOTION_DATABASE_ID"))
 
 
-def _request(method: str, path: str, body: dict | None = None) -> dict:
+def _request(method: str, path: str, body: dict | None = None,
+             raw: bytes | None = None, content_type: str = "application/json") -> dict:
     req = urllib.request.Request(
         API + path,
         method=method,
-        data=json.dumps(body).encode() if body is not None else None,
+        data=raw if raw is not None else (json.dumps(body).encode() if body is not None else None),
         headers={
             "Authorization": "Bearer " + os.environ["NOTION_TOKEN"],
             "Notion-Version": NOTION_VERSION,
-            "Content-Type": "application/json",
+            "Content-Type": content_type,
         },
     )
     try:
@@ -185,15 +188,53 @@ def data_source_id() -> str:
     return ds_id
 
 
-def create_job(info: dict, file_rel: str) -> dict:
-    """Create the Print Jobs row, then set its Open link from the assigned Job ID."""
+# ------------------------------------------------------------- uploads ------
+
+def upload_file(path: Path, content_type: str = "image/png") -> str:
+    """Upload a small file (< 20 MB) with the File Upload API; returns its id.
+    Must be attached to a page within 1 hour or Notion expires it."""
+    upload = _request("POST", "file_uploads", {
+        "mode": "single_part", "filename": path.name, "content_type": content_type,
+    })
+    boundary = "----printbox" + uuid.uuid4().hex
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="file"; filename="{path.name}"\r\n'
+        f"Content-Type: {content_type}\r\n\r\n"
+    ).encode() + path.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
+    sent = _request("POST", f"file_uploads/{upload['id']}/send", raw=body,
+                    content_type=f"multipart/form-data; boundary={boundary}")
+    if sent.get("status") != "uploaded":
+        raise NotionError(f"upload of {path.name} ended with status {sent.get('status')!r}")
+    return upload["id"]
+
+
+def preview_files(images: list[Path]) -> list[dict]:
+    """Upload plate PNGs for the Preview property. Upload failures are logged and skipped."""
+    files = []
+    for img in images:
+        try:
+            files.append({"type": "file_upload", "name": img.name,
+                          "file_upload": {"id": upload_file(img)}})
+        except (NotionError, OSError) as e:
+            log.warning("Notion: preview upload failed for %s: %s", img.name, e)
+    return files
+
+
+def create_job(info: dict, file_rel: str, images: list[Path] | None = None) -> dict:
+    """Create the Print Jobs row (with plate previews), then set its Open link from the Job ID."""
+    props = build_properties(info, file_rel)
+    previews = preview_files(images or [])
+    if previews:
+        props["Preview"] = {"files": previews}
     page = _request("POST", "pages", {
         "parent": {"type": "data_source_id", "data_source_id": data_source_id()},
-        "properties": build_properties(info, file_rel),
+        "properties": props,
     })
     uid = page.get("properties", {}).get("Job ID", {}).get("unique_id") or {}
     job_id = f"{uid['prefix']}-{uid['number']}" if uid.get("number") is not None else None
     if job_id:
         open_url = os.environ.get("OPEN_URL_BASE", "http://localhost:8765/open/") + job_id
         _request("PATCH", "pages/" + page["id"], {"properties": {"Open": {"url": open_url}}})
-    return {"page_id": page["id"], "url": page.get("url"), "job_id": job_id}
+    return {"page_id": page["id"], "url": page.get("url"), "job_id": job_id,
+            "previews": len(previews)}

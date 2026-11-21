@@ -36,7 +36,10 @@
             (#F99963) 4.16 g`) and **Colors** (multi-select, nearest color name from the
             slicer hex) if missing. Notion failures never fail the job; the `.json` gets
             `notion.synced=false`. Checkpoint passed (PRINT-2).
-      - [ ] Step 3: plate preview image -> Preview (Notion file upload API).
+      - [x] Step 3: every plate PNG -> Preview (File Upload API: create `file_uploads`,
+            multipart `send` with field `file`, attach as `{"type":"file_upload"}` in the
+            create-page call). Upload failures are logged and the row is created without
+            them. Checkpoint passed (PRINT-3, 2-plate `hacha`).
       - [ ] Step 4: retry unsynced jobs.
       - [ ] Step 5: opener at `localhost:8765`.
 - [ ] **Phase 3 - background + install:** run hidden at login (Task Scheduler), one-command

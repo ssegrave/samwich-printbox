@@ -231,9 +231,11 @@ def sync_notion(info: dict, json_path: Path) -> None:
         log.warning("Notion: NOTION_TOKEN / NOTION_DATABASE_ID not set, skipping")
         return
     try:
-        result = notion.create_job(info, info["processed_file"])
+        images = [PROCESSED / name for name in info.get("thumbnails", [])]
+        result = notion.create_job(info, info["processed_file"], images)
         info["notion"] = {"synced": True, **result}
-        log.info("Notion: %s created %s", result["job_id"] or "row", result["url"])
+        log.info("Notion: %s created %s (%d preview%s)", result["job_id"] or "row", result["url"],
+                 result["previews"], "" if result["previews"] == 1 else "s")
     except Exception as e:  # noqa: BLE001
         info["notion"] = {"synced": False, "error": f"{type(e).__name__}: {e}"}
         log.error("Notion: sync failed for %s: %s", info["name"], e)
