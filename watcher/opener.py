@@ -19,8 +19,11 @@ import json
 import logging
 import os
 import re
+import socket
 import subprocess
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -100,6 +103,16 @@ PAGE = """<!doctype html><html><head><meta charset="utf-8"><title>PrintBox {job}
 CLOSE_SCRIPT = "<script>setTimeout(function(){window.close()}, 1500)</script>"
 
 
+class Server(ThreadingHTTPServer):
+    """No address reuse: on Windows SO_REUSEADDR lets a second opener share the port."""
+    allow_reuse_address = False
+
+    def server_bind(self) -> None:
+        if os.name == "nt":
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         url = urlparse(self.path)
@@ -133,12 +146,24 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
+    # Per-PC log (the opener runs on every PC, so not in the shared Drive folder).
+    log_file = Path(os.environ.get("OPENER_LOG") or
+                    Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "PrintBox" / "opener.log")
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    handlers: list[logging.Handler] = [
+        RotatingFileHandler(log_file, maxBytes=1_000_000, backupCount=2, encoding="utf-8")]
+    if sys.stdout:  # None under pythonw (background mode)
+        handlers.append(logging.StreamHandler(sys.stdout))
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"),
-                        format="%(asctime)s %(levelname)s %(message)s")
+                        format="%(asctime)s %(levelname)s %(message)s", handlers=handlers)
     for key, (name, env_var, _) in SLICERS.items():
         exe = find_exe(key)
         log.info("%s: %s", name, exe or f"not found (set {env_var} in .env)")
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    try:
+        server = Server(("127.0.0.1", PORT), Handler)
+    except OSError as e:
+        log.error("Can't listen on port %d (%s) - is the opener already running?", PORT, e)
+        sys.exit(1)
     log.info("Opener on http://localhost:%d/open/PRINT-N (jobs in %s)", PORT, PROCESSED)
     server.serve_forever()
 

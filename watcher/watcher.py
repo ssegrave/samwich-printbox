@@ -20,6 +20,7 @@ import logging
 import os
 import re
 import shutil
+import socket
 import sys
 import time
 import zipfile
@@ -263,7 +264,36 @@ def is_candidate(p: Path) -> bool:
     )
 
 
+def single_instance(port: int) -> socket.socket | None:
+    """Hold a localhost port as a per-PC lock so a second watcher can't start (keep the socket)."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if os.name == "nt":
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+    try:
+        s.bind(("127.0.0.1", port))
+        return s
+    except OSError:
+        s.close()
+        return None
+
+
+def wait_for_drive() -> None:
+    """At login Google Drive may not be mounted yet; wait for the folder that holds the inbox."""
+    if INBOX.parent.exists():
+        return
+    if sys.stdout:  # None under pythonw
+        print(f"Waiting for {INBOX.parent} (is Google Drive running?) ...")
+    while not INBOX.parent.exists():
+        time.sleep(10)
+
+
 def main() -> None:
+    lock = single_instance(int(os.environ.get("WATCHER_LOCK_PORT", "8764")))
+    if lock is None:
+        if sys.stdout:
+            print("Another PrintBox watcher is already running on this PC; exiting.")
+        sys.exit(0)
+    wait_for_drive()
     for d in (INBOX, PROCESSED, FAILED):
         d.mkdir(parents=True, exist_ok=True)
     handlers = [logging.FileHandler(INBOX / "printbox.log", encoding="utf-8")]

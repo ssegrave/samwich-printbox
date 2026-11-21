@@ -49,15 +49,37 @@ and `.plateN.png` beside it. Also drop an un-sliced project `.3mf`: it should go
 
 ## Step 4 - Opener (every PC that opens jobs)
 
-Double-click `windowsun-opener.bat` and leave it open. It prints which slicers it found
-and `Opener on http://localhost:8765/...`. Clicking **Open** on a Print Jobs row in Notion
-then launches the right slicer with that job's file. Check AMS mapping, then Print.
+To try it in a console first: double-click `windows\run-opener.bat` and leave it open. It
+prints which slicers it found and `Opener on http://localhost:8765/...`. Clicking the green
+**Print** link (PRINT-N) on a Print Jobs row in Notion then launches the right slicer with
+that job's file. Check AMS mapping, then Print.
 
 If a slicer is installed somewhere unusual, add `BAMBU_STUDIO_EXE=` or `ORCASLICER_EXE=`
 with the full .exe path to `.env`.
 
+## Step 5 - Run in the background at login
+
+Close any `run-watcher.bat` / `run-opener.bat` console windows first, then:
+
+- **Every PC (opener only):** double-click `windows\install.bat`.
+- **The processor PC (samdesk), opener + watcher:** in a terminal in the repo folder:
+
+      windows\install.bat -Watcher
+
+This creates Task Scheduler tasks **PrintBox Opener** / **PrintBox Watcher** that start
+hidden (no window) at login, and starts them now. It needs `.env` with `INBOX_DIR`
+(created from `.env.example` if missing) and, for the watcher, `NOTION_TOKEN`.
+No admin rights needed. Re-run it after `git pull` if the installer changed.
+
+- Logs: watcher `G:\My Drive\PrintBox\printbox.log`; opener
+  `%LOCALAPPDATA%\PrintBox\opener.log`.
+- Stop / remove: `windows\install.bat -Uninstall` (or Task Scheduler > PrintBox ...).
+- A second watcher or opener on the same PC exits on its own, so a leftover console
+  window can't create duplicate jobs.
+
 ## Notes
 
-- Close the console window to stop the watcher. Running it hidden at login comes later.
+- The `.bat` launchers still work for watching activity in a console (stop the background
+  task first, or the console copy will exit straight away).
 - Same `watcher.py` runs unchanged on Linux / a Raspberry Pi (set `INBOX_DIR`; the Pi
   will sync the Drive folder with rclone).

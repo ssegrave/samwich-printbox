@@ -48,9 +48,23 @@
             to Program Files, override with BAMBU_STUDIO_EXE / ORCASLICER_EXE.
             `windows/run-opener.bat` runs it on every PC. Checkpoint passed: PRINT-3 opened
             in Bambu Studio 02.09 (new window, straight to sliced preview).
-            OrcaSlicer launch tested on a second PC: opened as expected.
+            OrcaSlicer launch tested on samdesk: opened as expected.
 - [ ] **Phase 3 - background + install:** run hidden at login (Task Scheduler), one-command
       installer for new PCs.
+      - [x] `windows/install.bat` (-> `install.ps1`): tasks "PrintBox Opener" (every PC) and
+            "PrintBox Watcher" (`-Watcher`, processor only) run `pythonw` at logon, no admin;
+            `-Uninstall` removes them. Re-running replaces and restarts the tasks (waits for
+            the old process to exit so the opener's port is free).
+      - [x] Watcher: per-PC lock (localhost port 8764) so a second copy exits; waits for the
+            Drive folder at login. Opener: log at `%LOCALAPPDATA%\PrintBox\opener.log`,
+            exclusive port bind (Windows SO_REUSEADDR allowed a second opener).
+      - [x] Checkpoint A (partly): installed on samdesk, both tasks running hidden,
+            PRINT-7 created by the background watcher.
+      - [ ] Checkpoint A: click PRINT-7's Print link with only the background opener running.
+      - [ ] Checkpoint B: sign out/in (or reboot), both start on their own; export -> row ->
+            Print link works.
+      - Notion **Print** column: formula showing the Job ID as a bold green link to Open
+        (Button properties can't open per-row URLs and can't be created via the API).
 - [ ] **Phase 4 - Pi:** watcher on Pi with rclone-synced Drive folder; PCs run opener only.
 
 ## Notion

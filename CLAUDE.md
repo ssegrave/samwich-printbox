@@ -35,6 +35,10 @@ launches the right slicer locally, where Samuel confirms AMS mapping and prints.
   `BambuStudio-02.09.01.70`, `OrcaSlicer-2.5.1` (see PLAN.md for Orca detection quirk).
 - Phase 2 in progress: Notion rows (incl. Filaments/Colors) and plate previews working.
   Opener (`watcher/opener.py`, `localhost:8765`) works with Bambu Studio and OrcaSlicer.
-  Next: Phase 3 (run watcher/opener hidden at login), then retry unsynced jobs (Step 4).
+  Phase 3 in progress: `windows\install.bat -Watcher` installed on samdesk (both tasks
+  running hidden). Next: finish Phase 3 checkpoints A/B (see PLAN.md), then retry
+  unsynced jobs (Phase 2 Step 4).
+- Code changes take effect when the tasks restart: re-run the installer (or sign out/in).
+  Other PCs need `git pull` + re-run `windows\install.bat`.
 - Notion Print Jobs DB: https://app.notion.com/p/41eda0e940bf81bc85ebcff87fda6ecf
   (needs internal integration "PrintBox" connected; token goes in `.env`).
