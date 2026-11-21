@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """
-PrintBox watcher - Phase 1 (parse only).
+PrintBox watcher - Phase 2 (parse + Notion).
 
 Watches a drop folder (default: ~/Documents/PrintBox, or INBOX_DIR) for sliced Bambu Studio / OrcaSlicer files (.gcode.3mf),
 waits until each file has finished copying, reads the slicer metadata inside it,
 and files it:
 
   processed/<timestamp>_<name>.gcode.3mf   the original file
-  processed/<timestamp>_<name>.json        everything parsed from it
+  processed/<timestamp>_<name>.json        everything parsed from it (+ "notion" sync result)
   processed/<timestamp>_<name>.plateN.png  plate preview image(s)
   failed/<timestamp>_<name>...             + .error.txt explaining why
 
-Later phases plug in at handle_job(): SimplyPrint upload/queue, then Notion.
+Each processed job then gets a row in the Notion Print Jobs database (see notion.py) when
+NOTION_TOKEN is set. Settings come from the environment, then the repo's .env.
 Standard library only.
 """
 import json
@@ -26,7 +27,23 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
-INBOX = Path(os.environ.get("INBOX_DIR") or (Path.home() / "Documents" / "PrintBox")).expanduser()
+
+def load_dotenv(path: Path) -> None:
+    """KEY=VALUE lines from .env; real environment variables win."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip().strip('"'))
+
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
+import notion  # noqa: E402  (after .env is loaded)
+
+INBOX =Path(os.environ.get("INBOX_DIR") or (Path.home() / "Documents" / "PrintBox")).expanduser()
 PROCESSED = INBOX / "processed"
 FAILED = INBOX / "failed"
 POLL_SECONDS = float(os.environ.get("POLL_SECONDS", "3"))
@@ -178,7 +195,7 @@ def extract_thumbnails(path: Path, info: dict, dest_stem: Path) -> list[str]:
 # ------------------------------------------------------------- pipeline -----
 
 def handle_job(path: Path, info: dict) -> None:
-    """Phase 1: nothing beyond parsing. Phase 2 (SimplyPrint) and 3 (Notion) go here."""
+    """Log what was parsed. Notion sync happens after filing (sync_notion)."""
     plates = ", ".join(
         f"plate {p['index']}: {p['print_time']} / {p['weight_g']} g" for p in info["plates"]
     )
@@ -193,14 +210,34 @@ def stamp() -> str:
     return datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
-def file_success(path: Path, info: dict) -> None:
+def file_success(path: Path, info: dict) -> Path:
+    """Move the job into processed/ and return the path of its .json."""
     PROCESSED.mkdir(exist_ok=True)
     dest_stem = PROCESSED / f"{stamp()}_{info['name']}"
     info["thumbnails"] = extract_thumbnails(path, info, dest_stem)
     info["processed_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
-    dest_stem.with_name(dest_stem.name + ".json").write_text(json.dumps(info, indent=2))
-    shutil.move(str(path), str(dest_stem.with_name(dest_stem.name + "".join(_suffixes(path)))))
+    dest = dest_stem.with_name(dest_stem.name + _suffixes(path))
+    info["processed_file"] = f"processed/{dest.name}"
+    json_path = dest_stem.with_name(dest_stem.name + ".json")
+    json_path.write_text(json.dumps(info, indent=2))
+    shutil.move(str(path), str(dest))
     log.info("-> processed/%s", dest_stem.name)
+    return json_path
+
+
+def sync_notion(info: dict, json_path: Path) -> None:
+    """Create the Print Jobs row. Failures are logged and recorded in the .json, never fatal."""
+    if not notion.configured():
+        log.warning("Notion: NOTION_TOKEN / NOTION_DATABASE_ID not set, skipping")
+        return
+    try:
+        result = notion.create_job(info, info["processed_file"])
+        info["notion"] = {"synced": True, **result}
+        log.info("Notion: %s created %s", result["job_id"] or "row", result["url"])
+    except Exception as e:  # noqa: BLE001
+        info["notion"] = {"synced": False, "error": f"{type(e).__name__}: {e}"}
+        log.error("Notion: sync failed for %s: %s", info["name"], e)
+    json_path.write_text(json.dumps(info, indent=2))
 
 
 def file_failure(path: Path, reason: str) -> None:
@@ -276,7 +313,7 @@ def main() -> None:
 
                 try:
                     handle_job(p, info)
-                    file_success(p, info)
+                    json_path = file_success(p, info)
                 except PermissionError:
                     continue  # file locked mid-move; retry next poll
                 except Exception as e:  # noqa: BLE001
@@ -285,6 +322,8 @@ def main() -> None:
                         file_failure(p, f"{type(e).__name__}: {e}")
                     except OSError:
                         log.exception("Could not move %s to failed/", p.name)
+                else:
+                    sync_notion(info, json_path)
                 seen.pop(p, None)
         except Exception:  # noqa: BLE001
             log.exception("Watcher loop error")
