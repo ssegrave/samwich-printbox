@@ -92,8 +92,12 @@ def open_job(job_id: str, override: str | None) -> tuple[int, str]:
 PAGE = """<!doctype html><html><head><meta charset="utf-8"><title>PrintBox {job}</title>
 <style>body{{font:16px system-ui,sans-serif;max-width:40em;margin:3em auto;padding:0 1em}}
 .ok{{color:#1a7f37}}.err{{color:#b42318}}a{{margin-right:1em}}</style></head><body>
-<h2 class="{cls}">{msg}</h2><p>{links}</p><p><small>You can close this tab.</small></p>
-</body></html>"""
+<h2 class="{cls}">{msg}</h2><p>{links}</p><p><small>{note}</small></p>
+{script}</body></html>"""
+
+# Browsers only let a page close its own tab if that tab has no history (a fresh tab from a
+# link, e.g. Notion's Open). location.replace() keeps it that way for the override links.
+CLOSE_SCRIPT = "<script>setTimeout(function(){window.close()}, 1500)</script>"
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -110,10 +114,14 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:  # noqa: BLE001
             log.exception("open %s failed", job_id)
             status, msg = 500, f"Error opening {job_id}: {e}"
-        links = " ".join(f'<a href="/open/{job_id}?slicer={k}">Open in {v[0]} instead</a>'
+        links = " ".join(f'<a href="/open/{job_id}?slicer={k}" '
+                         f'onclick="location.replace(this.href);return false">Open in {v[0]} instead</a>'
                          for k, v in SLICERS.items())
-        body = PAGE.format(job=job_id, cls="ok" if status == 200 else "err",
-                           msg=html.escape(msg), links=links).encode()
+        ok = status == 200
+        body = PAGE.format(job=job_id, cls="ok" if ok else "err", msg=html.escape(msg), links=links,
+                           note="This tab closes itself; close it if it doesn't." if ok
+                           else "You can close this tab.",
+                           script=CLOSE_SCRIPT if ok else "").encode()
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Cache-Control", "no-store")

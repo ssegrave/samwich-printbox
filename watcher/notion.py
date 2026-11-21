@@ -33,6 +33,9 @@ COLOR_OPTIONS = {
 EXTRA_PROPERTIES = {
     "Filaments": {"rich_text": {}},
     "Colors": {"multi_select": {"options": [{"name": n, "color": c} for n, c in COLOR_OPTIONS.items()]}},
+    # Clickable green "PRINT-N" label for the Open URL (a Button can't open a per-row URL).
+    "Print": {"formula": {"expression":
+        'if(empty(prop("Open")), "", link(replace(prop("Open"), "^.*/", ""), prop("Open")).style("b", "green"))'}},
 }
 
 
@@ -180,10 +183,14 @@ def data_source_id() -> str:
         raise NotionError("Print Jobs database has no data source (is the integration connected?)")
     ds_id = sources[0]["id"]
     existing = _request("GET", "data_sources/" + ds_id)["properties"]
-    missing = {k: v for k, v in EXTRA_PROPERTIES.items() if k not in existing}
+    # Add missing properties, and update formulas whose expression changed in code.
+    missing = {k: v for k, v in EXTRA_PROPERTIES.items()
+               if k not in existing
+               or ("formula" in v and existing[k].get("formula", {}).get("expression")
+                   != v["formula"]["expression"])}
     if missing:
         _request("PATCH", "data_sources/" + ds_id, {"properties": missing})
-        log.info("Notion: added properties %s to Print Jobs", ", ".join(missing))
+        log.info("Notion: added/updated properties %s in Print Jobs", ", ".join(missing))
     _data_source_id = ds_id
     return ds_id
 
