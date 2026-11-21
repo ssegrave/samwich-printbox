@@ -41,7 +41,14 @@
             create-page call). Upload failures are logged and the row is created without
             them. Checkpoint passed (PRINT-3, 2-plate `hacha`).
       - [ ] Step 4: retry unsynced jobs.
-      - [ ] Step 5: opener at `localhost:8765`.
+      - [x] Step 5 (done before Step 4, basics first): `watcher/opener.py` serves
+            `localhost:8765/open/PRINT-N` (127.0.0.1 only), finds the job's .json in
+            processed/ by Job ID and launches the slicer with the file: H3C -> Bambu Studio,
+            else the slicer that made it; `?slicer=bambu|orca` overrides. Exe paths default
+            to Program Files, override with BAMBU_STUDIO_EXE / ORCASLICER_EXE.
+            `windows/run-opener.bat` runs it on every PC. Checkpoint passed: PRINT-3 opened
+            in Bambu Studio 02.09 (new window, straight to sliced preview).
+            OrcaSlicer not installed on samdesk; Orca launch untested.
 - [ ] **Phase 3 - background + install:** run hidden at login (Task Scheduler), one-command
       installer for new PCs.
 - [ ] **Phase 4 - Pi:** watcher on Pi with rclone-synced Drive folder; PCs run opener only.

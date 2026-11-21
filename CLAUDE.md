@@ -34,6 +34,7 @@ launches the right slicer locally, where Samuel confirms AMS mapping and prints.
   `printer_model`: `Bambu Lab P1S`, `Bambu Lab H3C`. Slicer strings:
   `BambuStudio-02.09.01.70`, `OrcaSlicer-2.5.1` (see PLAN.md for Orca detection quirk).
 - Phase 2 in progress: Notion rows (incl. Filaments/Colors) and plate previews working.
-  Next: retry unsynced jobs, then the opener (see PLAN.md).
+  Opener (`watcher/opener.py`, `localhost:8765`) works with Bambu Studio on samdesk.
+  Next: test opener with OrcaSlicer on another PC, then retry unsynced jobs (Step 4).
 - Notion Print Jobs DB: https://app.notion.com/p/41eda0e940bf81bc85ebcff87fda6ecf
   (needs internal integration "PrintBox" connected; token goes in `.env`).

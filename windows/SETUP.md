@@ -47,6 +47,15 @@ and `.plateN.png` beside it. Also drop an un-sliced project `.3mf`: it should go
 **Checkpoint 3:** tell Claude it's done - Claude can read the `.json` files from
 `processed\` directly (no need to paste them).
 
+## Step 4 - Opener (every PC that opens jobs)
+
+Double-click `windowsun-opener.bat` and leave it open. It prints which slicers it found
+and `Opener on http://localhost:8765/...`. Clicking **Open** on a Print Jobs row in Notion
+then launches the right slicer with that job's file. Check AMS mapping, then Print.
+
+If a slicer is installed somewhere unusual, add `BAMBU_STUDIO_EXE=` or `ORCASLICER_EXE=`
+with the full .exe path to `.env`.
+
 ## Notes
 
 - Close the console window to stop the watcher. Running it hidden at login comes later.
