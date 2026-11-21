@@ -203,6 +203,14 @@ def data_source_id() -> str:
     return ds_id
 
 
+def set_status(page_id: str, status: str, printed_date: str | None = None) -> None:
+    """Set Status (and the Printed date, YYYY-MM-DD) on a Print Jobs row."""
+    props: dict = {"Status": {"status": {"name": status}}}
+    if printed_date:
+        props["Printed"] = {"date": {"start": printed_date}}
+    _request("PATCH", "pages/" + page_id, {"properties": props})
+
+
 # ------------------------------------------------------------- uploads ------
 
 def upload_file(path: Path, content_type: str = "image/png") -> str:

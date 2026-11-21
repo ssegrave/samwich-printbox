@@ -38,6 +38,9 @@ launches the right slicer locally, where Samuel confirms AMS mapping and prints.
   Phase 3 in progress: `windows\install.bat -Watcher` installed on samdesk (both tasks
   running hidden). Next: finish Phase 3 checkpoints A/B (see PLAN.md), then retry
   unsynced jobs (Phase 2 Step 4).
+- Printer monitor (`watcher/printers.py`) sets Printing/Done/Failed from the printers'
+  local MQTT status (read-only + one `pushall` per connection; never send print commands).
+  Access codes are in `.env` as `BAMBU_ACCESS_<serial>`.
 - Code changes take effect when the tasks restart: re-run the installer (or sign out/in).
   Other PCs need `git pull` + re-run `windows\install.bat`.
 - Notion Print Jobs DB: https://app.notion.com/p/41eda0e940bf81bc85ebcff87fda6ecf

@@ -44,6 +44,7 @@ def load_dotenv(path: Path) -> None:
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 import notion  # noqa: E402  (after .env is loaded)
+import printers  # noqa: E402
 
 INBOX =Path(os.environ.get("INBOX_DIR") or (Path.home() / "Documents" / "PrintBox")).expanduser()
 PROCESSED = INBOX / "processed"
@@ -319,6 +320,7 @@ def main() -> None:
         handlers=handlers,
     )
     log.info("Watching %s (poll %ss, %s stable checks)", INBOX, POLL_SECONDS, STABLE_CHECKS)
+    printers.start(PROCESSED, INBOX / "printers.json")  # Printing/Done/Failed from printer status
 
     seen: dict[Path, tuple[int, float, int, float]] = {}  # path -> (size, mtime, stable_count, first_seen)
     while True:

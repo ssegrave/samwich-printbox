@@ -65,6 +65,16 @@
             Print link works.
       - Notion **Print** column: formula showing the Job ID as a bold green link to Open
         (Button properties can't open per-row URLs and can't be created via the API).
+- [ ] **Printer status -> queue** (`watcher/printers.py`, started by the watcher):
+      local MQTT per printer (8883, `bblp` + LAN access code from `.env`, found by SSDP on
+      UDP 2021), one `pushall` per connection (P1 only sends deltas otherwise), then acts on
+      `gcode_state` changes. `subtask_name` `<stamp>_<name>.gcode_plate_N` -> processed
+      `<stamp>_<name>.json`: active -> Printing, FINISH -> Done + Printed date once every
+      plate has finished, FAILED -> Failed. Last action per printer in `<INBOX>/printers.json`
+      so restarts don't repeat. Notion **Queue** view hides the Complete group.
+      - [x] Connected to Telemachus (P1S, ...0948) and Mordecai (H3C, ...0482); PRINT-9 and
+            PRINT-10 went to Printing.
+      - [ ] Checkpoint: a print finishing moves its row to Done and out of Queue.
 - [ ] **Phase 4 - Pi:** watcher on Pi with rclone-synced Drive folder; PCs run opener only.
 
 ## Notion
