@@ -1,9 +1,9 @@
-# samwich-printinbox
+# samwich-printbox
 
 Print-job inbox for The Samwich Shop's Bambu printers.
 
 Slice in Bambu Studio or OrcaSlicer -> export the plate (`.gcode.3mf`) into the shared
-Google Drive folder `My Drive\PrintInbox` -> the watcher reads it and (Phase 2) logs it
+Google Drive folder `My Drive\PrintBox` -> the watcher reads it and (Phase 2) logs it
 to the Notion **Print Jobs** database -> an **Open** link loads the file in the right
 slicer, where you confirm filament mapping and print.
 
@@ -23,11 +23,11 @@ No printer Developer Mode needed; printing stays in Bambu Studio / Bambu Connect
 
     mkdir $HOME\repos      # once; skip if it exists
     cd $HOME\repos
-    git clone https://github.com/ssegrave/samwich-printinbox.git
+    git clone https://github.com/ssegrave/samwich-printbox.git
     py --version            # 3.10+
 
 Then follow `windows/SETUP.md`. Update later with `git pull` inside
-`$HOME\repos\samwich-printinbox`.
+`$HOME\repos\samwich-printbox`.
 
 Keep the repo out of OneDrive / Google Drive folders (sync tools and git don't mix).
 

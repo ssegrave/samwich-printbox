@@ -1,9 +1,9 @@
 @echo off
-REM PrintInbox watcher - phase 1 (parse only). Close this window to stop it.
+REM PrintBox watcher - phase 1 (parse only). Close this window to stop it.
 REM Run this on ONE machine only (the "processor"). Other PCs just sync via Google Drive.
 
 REM Folder to watch. Change this line if your Google Drive path is different.
-set "INBOX_DIR=G:\My Drive\PrintInbox"
+set "INBOX_DIR=G:\My Drive\PrintBox"
 
 cd /d "%~dp0"
 if not exist "%INBOX_DIR%" (

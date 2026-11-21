@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-PrintInbox watcher - Phase 1 (parse only).
+PrintBox watcher - Phase 1 (parse only).
 
-Watches a drop folder (default: ~/Documents/PrintInbox, or INBOX_DIR) for sliced Bambu Studio / OrcaSlicer files (.gcode.3mf),
+Watches a drop folder (default: ~/Documents/PrintBox, or INBOX_DIR) for sliced Bambu Studio / OrcaSlicer files (.gcode.3mf),
 waits until each file has finished copying, reads the slicer metadata inside it,
 and files it:
 
@@ -26,14 +26,14 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
-INBOX = Path(os.environ.get("INBOX_DIR") or (Path.home() / "Documents" / "PrintInbox")).expanduser()
+INBOX = Path(os.environ.get("INBOX_DIR") or (Path.home() / "Documents" / "PrintBox")).expanduser()
 PROCESSED = INBOX / "processed"
 FAILED = INBOX / "failed"
 POLL_SECONDS = float(os.environ.get("POLL_SECONDS", "3"))
 STABLE_CHECKS = int(os.environ.get("STABLE_CHECKS", "2"))   # unchanged polls before processing
 BAD_ZIP_GRACE = float(os.environ.get("BAD_ZIP_GRACE_SECONDS", "120"))
 
-log = logging.getLogger("printinbox")
+log = logging.getLogger("printbox")
 
 
 # ---------------------------------------------------------------- parsing ----
@@ -227,7 +227,7 @@ def is_candidate(p: Path) -> bool:
 def main() -> None:
     for d in (INBOX, PROCESSED, FAILED):
         d.mkdir(parents=True, exist_ok=True)
-    handlers = [logging.FileHandler(INBOX / "printinbox.log", encoding="utf-8")]
+    handlers = [logging.FileHandler(INBOX / "printbox.log", encoding="utf-8")]
     if sys.stdout:  # None under pythonw (background mode)
         handlers.append(logging.StreamHandler(sys.stdout))
     logging.basicConfig(

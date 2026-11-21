@@ -1,9 +1,9 @@
-# PrintInbox on samdesk - Phase 1 (parse only)
+# PrintBox on samdesk - Phase 1 (parse only)
 
-Code lives in `C:\Users\<you>\repos\samwich-printinbox\` (a local folder, not synced by
+Code lives in `C:\Users\<you>\repos\samwich-printbox\` (a local folder, not synced by
 OneDrive or Google Drive); the launcher is `windows\run-watcher.bat`. The drop folder is the Google Drive folder
-`G:\My Drive\PrintInbox\` (set in `run-watcher.bat`; edit that line if your path differs).
-On first run the watcher adds `processed\`, `failed\` and `printinbox.log` inside it.
+`G:\My Drive\PrintBox\` (set in `run-watcher.bat`; edit that line if your path differs).
+On first run the watcher adds `processed\`, `failed\` and `printbox.log` inside it.
 
 Run the watcher on **one machine only** (samdesk for now). Other PCs just see the same
 files through Google Drive - running a second watcher would create duplicate jobs.
@@ -26,12 +26,12 @@ then open a new PowerShell window and re-check.
 
 Double-click `windows\run-watcher.bat`. A console window stays open showing activity.
 
-**Checkpoint 2:** it prints `Watching G:\My Drive\PrintInbox ...` and `processed`
+**Checkpoint 2:** it prints `Watching G:\My Drive\PrintBox ...` and `processed`
 and `failed` folders appear inside it.
 
 ## Step 3 - Real-file test (leave the console open)
 
-Slice, then **File > Export > Export plate sliced file** into `G:\My Drive\PrintInbox\`:
+Slice, then **File > Export > Export plate sliced file** into `G:\My Drive\PrintBox\`:
 
 | # | Slicer       | Printer        | Plates |
 |---|--------------|----------------|--------|

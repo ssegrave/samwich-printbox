@@ -3,7 +3,7 @@
 ## Decisions (Nov 2026)
 - **Local-first:** run on samdesk (Windows 11) now; move the watcher to a Raspberry Pi later.
   The old Ubuntu server laptop was overheating and is out of the loop.
-- **Storage:** Google Drive for desktop, folder `My Drive\PrintInbox` (available offline).
+- **Storage:** Google Drive for desktop, folder `My Drive\PrintBox` (available offline).
   Code lives in GitHub, files live in Drive.
 - **One processor:** only one machine runs the watcher (creates Notion rows, moves files).
   Every PC can run the opener.
@@ -35,4 +35,4 @@
 
 ## Notion
 - Print Jobs database: https://app.notion.com/p/41eda0e940bf81bc85ebcff87fda6ecf
-- Integration: internal "PrintInbox" (Read/Update/Insert content), connected to Print Jobs.
+- Integration: internal "PrintBox" (Read/Update/Insert content), connected to Print Jobs.

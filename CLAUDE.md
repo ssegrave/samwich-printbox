@@ -1,11 +1,11 @@
-# CLAUDE.md - samwich-printinbox
+# CLAUDE.md - samwich-printbox
 
 Print-job inbox for The Samwich Shop (Samuel's maker operation). Read `docs/PLAN.md` for
 the full decision log and phase checklist before changing anything.
 
 ## What it does
 Slice in Bambu Studio / OrcaSlicer -> export plate sliced file (`.gcode.3mf`) into Google
-Drive `My Drive\PrintInbox` (Windows: `G:\My Drive\PrintInbox`) -> `watcher/watcher.py`
+Drive `My Drive\PrintBox` (Windows: `G:\My Drive\PrintBox`) -> `watcher/watcher.py`
 parses it -> (Phase 2) creates a row in the Notion **Print Jobs** database -> an Open link
 launches the right slicer locally, where Samuel confirms AMS mapping and prints.
 
@@ -35,4 +35,4 @@ launches the right slicer locally, where Samuel confirms AMS mapping and prints.
   `BambuStudio-02.09.01.70`, `OrcaSlicer-2.5.1` (see PLAN.md for Orca detection quirk).
 - Next: Phase 2 (Notion + opener).
 - Notion Print Jobs DB: https://app.notion.com/p/41eda0e940bf81bc85ebcff87fda6ecf
-  (needs internal integration "PrintInbox" connected; token goes in `.env`).
+  (needs internal integration "PrintBox" connected; token goes in `.env`).
