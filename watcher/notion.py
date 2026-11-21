@@ -250,10 +250,16 @@ def create_job(info: dict, file_rel: str, images: list[Path] | None = None) -> d
     previews = preview_files(images or [])
     if previews:
         props["Preview"] = {"files": previews}
-    page = _request("POST", "pages", {
+    body = {
         "parent": {"type": "data_source_id", "data_source_id": data_source_id()},
         "properties": props,
-    })
+    }
+    if images:
+        try:   # first plate image as the page icon (shows next to the Name)
+            body["icon"] = {"type": "file_upload", "file_upload": {"id": upload_file(images[0])}}
+        except (NotionError, OSError) as e:
+            log.warning("Notion: icon upload failed for %s: %s", images[0].name, e)
+    page = _request("POST", "pages", body)
     uid = page.get("properties", {}).get("Job ID", {}).get("unique_id") or {}
     job_id = f"{uid['prefix']}-{uid['number']}" if uid.get("number") is not None else None
     if job_id:
