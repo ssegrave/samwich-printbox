@@ -161,7 +161,7 @@ def build_properties(info: dict, file_rel: str) -> dict:
     props = {
         "Name": {"title": [{"text": {"content": display_name(info)[:2000]}}]},
         "Plate": _text(info["name"]),
-        "Status": {"status": {"name": "Inbox"}},
+        "Status": {"status": {"name": "Queued"}},
         "Printer": {"select": {"name": PRINTERS.get(info.get("printer_model") or "", "Other")}},
         "Est. Minutes": {"number": round(info["total_print_time_s"] / 60)},
         "Filament (g)": {"number": info["total_weight_g"]},
