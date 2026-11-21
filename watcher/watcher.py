@@ -15,6 +15,7 @@ Each processed job then gets a row in the Notion Print Jobs database (see notion
 NOTION_TOKEN is set. Settings come from the environment, then the repo's .env.
 Standard library only.
 """
+import html
 import json
 import logging
 import os
@@ -84,21 +85,32 @@ def _scalar(value):
     return value
 
 
-def read_application(z: zipfile.ZipFile, names: set) -> str | None:
-    """Slicer name+version from 3D/3dmodel.model.
+def read_model_metadata(z: zipfile.ZipFile, names: set) -> dict:
+    """<metadata name=...> values from the top of 3D/3dmodel.model (Application, Title, ...).
 
-    OrcaSlicer writes Application="BambuStudio-<ver>" for compatibility and adds its own
-    <metadata name="OrcaSlicer">2.5.1</metadata>, so check for that first.
+    Metadata comes before <resources>; MakerWorld descriptions can be long, so read up to
+    there (capped at 4 MB) rather than a fixed small head.
     """
     if "3D/3dmodel.model" not in names:
-        return None
+        return {}
+    head = b""
     with z.open("3D/3dmodel.model") as f:
-        head = f.read(65536).decode("utf-8", "replace")
-    m = re.search(r'<metadata name="OrcaSlicer">([^<]*)</metadata>', head)
-    if m:
-        return f"OrcaSlicer-{m.group(1).strip()}"
-    m = re.search(r'<metadata name="Application">([^<]*)</metadata>', head)
-    return m.group(1).strip() if m else None
+        while len(head) < 4_000_000 and b"<resources" not in head:
+            chunk = f.read(262144)
+            if not chunk:
+                break
+            head += chunk
+    text = head.decode("utf-8", "replace")
+    return {k: html.unescape(v).strip()
+            for k, v in re.findall(r'<metadata name="([^"]+)">([^<]*)</metadata>', text)}
+
+
+def read_application(meta: dict) -> str | None:
+    """Slicer name+version. OrcaSlicer writes Application="BambuStudio-<ver>" for
+    compatibility and adds its own <metadata name="OrcaSlicer">2.5.1</metadata>."""
+    if meta.get("OrcaSlicer"):
+        return f"OrcaSlicer-{meta['OrcaSlicer']}"
+    return meta.get("Application") or None
 
 
 def parse_3mf(path: Path) -> dict:
@@ -163,11 +175,13 @@ def parse_3mf(path: Path) -> dict:
                 "In the slicer use File > Export > 'Export plate sliced file' (.gcode.3mf)."
             )
 
+        meta = read_model_metadata(z, names)
         return {
             "name": job_name(path),
+            "title": meta.get("Title") or None,      # project title, e.g. from MakerWorld
             "source_file": path.name,
             "size_bytes": path.stat().st_size,
-            "slicer": read_application(z, names),   # e.g. "BambuStudio-02.03.01.51" / "OrcaSlicer-2.3.1"
+            "slicer": read_application(meta),       # e.g. "BambuStudio-02.03.01.51" / "OrcaSlicer-2.3.1"
             "slicer_version": header.get("OrcaSlicer-Version") or header.get("X-BBL-Client-Version"),
             "printer_model": _scalar(settings.get("printer_model")),
             "printer_variant": _scalar(settings.get("printer_variant")),

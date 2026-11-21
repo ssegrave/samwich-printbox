@@ -148,11 +148,19 @@ def _slicer(info: dict) -> str | None:
     return None
 
 
+def display_name(info: dict) -> str:
+    """'<project Title> · <file name>' (exports of one project share a Title), else the file name."""
+    title, name = (info.get("title") or "").strip(), info["name"]
+    if not title or title.lower() == name.lower():
+        return name
+    return f"{title} · {name}"
+
+
 def build_properties(info: dict, file_rel: str) -> dict:
     slots = filament_slots(info)
     colors = sorted({c for c in (color_name(s["color"]) for s in slots) if c})
     props = {
-        "Name": {"title": [{"text": {"content": info["name"][:2000]}}]},
+        "Name": {"title": [{"text": {"content": display_name(info)[:2000]}}]},
         "Status": {"status": {"name": "Inbox"}},
         "Printer": {"select": {"name": PRINTERS.get(info.get("printer_model") or "", "Other")}},
         "Est. Minutes": {"number": round(info["total_print_time_s"] / 60)},
